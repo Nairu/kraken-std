@@ -37,7 +37,7 @@ class Package:
     def to_json(self) -> dict[str, str]:
         values = {f.name: getattr(self, f.name) for f in fields(self) if f.name != "unhandled"}
         if self.unhandled is not None:
-            values = values | {k: v for k, v in self.unhandled.items() if v is not None}
+            values.update({k: v for k, v in self.unhandled.items() if v is not None})
         return {k: v for k, v in values.items() if v is not None}
 
 

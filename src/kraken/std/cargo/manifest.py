@@ -24,11 +24,11 @@ class Package:
     name: str
     version: str | None
     edition: str | None
+    include: list[str] | None
 
     def to_json(self) -> dict[str, str]:
         values = {f.name: getattr(self, f.name) for f in fields(self)}
         return {k: v for k, v in values.items() if v is not None}
-
 
 @dataclass
 class CargoManifest:

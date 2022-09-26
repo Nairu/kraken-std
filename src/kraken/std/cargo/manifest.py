@@ -24,18 +24,22 @@ class Package:
     name: str
     version: str | None
     edition: str | None
-    include: list[str] | None
-        
-    # Explicitly specifying the init function so we only parse the fields we care about.    
-    def __init__(self, **kwargs):
-        names = set([f.name for f in dataclasses.fields(self)])
-        for k, v in kwargs.items():
-            if k in names:
-                setattr(self, k, v)
+    unhandled: dict[str, str] | None
+
+    @classmethod
+    def from_json(cls, json: dict[str, str]) -> Package:
+        cloned = dict(json)
+        name = cloned.pop("name")
+        version = cloned.pop("version", None)
+        edition = cloned.pop("edition", None)
+        return Package(name, version, edition, cloned)
 
     def to_json(self) -> dict[str, str]:
-        values = {f.name: getattr(self, f.name) for f in fields(self)}
+        values = {f.name: getattr(self, f.name) for f in fields(self) if f.name != "unhandled"}
+        if self.unhandled is not None:
+            values = values | {k: v for k, v in self.unhandled.items() if v is not None}
         return {k: v for k, v in values.items() if v is not None}
+
 
 @dataclass
 class CargoManifest:
@@ -55,7 +59,7 @@ class CargoManifest:
         return cls(
             path,
             data,
-            Package(**data["package"]),
+            Package.from_json(data["package"]),
             [Bin(**x) for x in data.get("bin", [])],
         )
 

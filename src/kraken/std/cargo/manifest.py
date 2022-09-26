@@ -25,6 +25,13 @@ class Package:
     version: str | None
     edition: str | None
     include: list[str] | None
+        
+    # Explicitly specifying the init function so we only parse the fields we care about.    
+    def __init__(self, **kwargs):
+        names = set([f.name for f in dataclasses.fields(self)])
+        for k, v in kwargs.items():
+            if k in names:
+                setattr(self, k, v)
 
     def to_json(self) -> dict[str, str]:
         values = {f.name: getattr(self, f.name) for f in fields(self)}
